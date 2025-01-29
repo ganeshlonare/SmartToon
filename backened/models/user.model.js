@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import {Schema,model}from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -24,16 +23,10 @@ const userSchema=new Schema({
     password:{
         type:String,
         required:[true,"Please enter the password"],
-        minLength:[8,"password should be of minimum 8 letters"],
-        maxLength:[12,"password should be of maximum 12 letters"],
+        // minLength:[8,"password should be of minimum 8 letters"],
+        // maxLength:[12,"password should be of maximum 12 letters"],
         trim:true,
         select:false
-    },
-    verifyPassword:{
-        type:String,
-        required:[true,"Please enter the correct password"],
-        minLength:[8,"password should be of minimum 8 letters"],
-        maxLength:[12,"password should be of maximum 12 letters"],
     },
     age:{
         type:Number,
@@ -41,11 +34,11 @@ const userSchema=new Schema({
             min:0,
             max:11,
     },
-    StudyYear:{
-        type:String,
-        required:true,
-        enum:["KG1","KG2","1ST","2ND","3RD","4TH","5TH"],
-    },
+    // StudyYear:{
+    //     type:String,
+    //     required:true,
+    //     enum:["KG1","KG2","1ST","2ND","3RD","4TH","5TH"],
+    // },
     avatar:{
         public_id:{
             type:String
@@ -78,9 +71,9 @@ userSchema.methods.generateJWTToken = function() {
             id: this._id,
             email: this.email,
         },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET_KEY,
         {
-            expiresIn: process.env.JWT_EXPIRY,
+            expiresIn: process.env.JWT_SECRET_KEY_EXPIRY,
         }
     );
 };

@@ -1,14 +1,22 @@
-import dotenv from "dotenv";
-dotenv.config();
+import {config} from "dotenv";
 import express from "express";
-const app=express();
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
+import morgan from 'morgan'
 import userRoutes from './router/user.routes.js';
-import database from './config/databaseConfig.js';
-database();
+config();
 
+const app=express();
 
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
+app.use(cors({
+    origin:process.env.FE_URL,
+    credentials:true
+}))
+app.use(cookieParser())
+app.use(morgan('dev'))
 
 app.use('/api/v1/user',userRoutes);
-
 
 export default app;
