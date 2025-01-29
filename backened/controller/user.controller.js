@@ -1,4 +1,4 @@
-import User from "../models/userModelSchemas.js";
+import User from "../models/user.model.js";
 import AppError from "../utils/error.utils.js";
 import sendEmail from "../utils/sendEmail.js";
 import { validate } from "email-validator";
@@ -6,6 +6,12 @@ import cloudinary from "cloudinary";
 import fs from 'fs/promises';
 import crypto from "crypto";
 
+
+const cookieOptions={
+    httpOnly:true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,//7 days
+    secure:true,
+}
 
 //signup/register function
 
@@ -41,35 +47,35 @@ const register=async(req,res,next)=>{
       console.log(user);
 
       //File upload
-      console.log("File details are", JSON.stringify(req.file));
-      if (req.file) {
-        try{
-            const result = await cloudinary.v2.uploader.upload(req.file.path, {
-                folder: 'lms',
-                width: 250,
-                height: 250,
-                gravity: 'faces',
-                crop: 'fill'
-        })
-        if (result) {
-            user.avatar.public_id = result.public_id;
-            user.avatar.secure_url = result.secure_url;
+        console.log("File details are", JSON.stringify(req.file));
+        if (req.file) {
+            try{
+                const result = await cloudinary.v2.uploader.upload(req.file.path, {
+                    folder: 'lms',
+                    width: 250,
+                    height: 250,
+                    gravity: 'faces',
+                    crop: 'fill'
+            })
+            if (result) {
+                user.avatar.public_id = result.public_id;
+                user.avatar.secure_url = result.secure_url;
 
-             // Remove file from server
-             await fs.rm(`uploads/${req.file.filename}`);
-      }
+                // Remove file from server
+                await fs.rm(`uploads/${req.file.filename}`);
+        }
+        }
+        catch(error){
+            return next(new AppError(error.message || 'File not uploaded, please try again', 500));
+        }
     }
-    catch(error){
-        return next(new AppError(error.message || 'File not uploaded, please try again', 500));
-    }
-}
  // Save all data
- await user.save();
+        await user.save();
 
- // Undefined password so don't show it
- user.password = undefined;
+        // Undefined password so don't show it
+        user.password = undefined;
 
- const token = user.generateJWTToken();
+        const token = user.generateJWTToken();
         res.cookie('token', token, cookieOptions);
 
         res.status(201).json({
@@ -78,7 +84,10 @@ const register=async(req,res,next)=>{
             user,
         });
     } catch (error) {
-        return next(new AppError(error.message, 400));
+        return res.json({
+            success: false,
+            message: error.message
+        })
     }
 };
 
@@ -97,18 +106,18 @@ const login=async(req,res,next)=>{
             return next(new AppError("Incorrect email or password", 400));
         }
  // Undefined password so don't show it
- user.password = undefined;
- const token = await user.generateJWTToken();
- res.cookie('token', token, cookieOptions);
+        user.password = undefined;
+        const token = await user.generateJWTToken();
+        res.cookie('token', token, cookieOptions);
 
- res.status(200).json({
-     success: true,
-     message: "User logged in successfully!",
-     user,
- });
-} catch (error) {
- return next(new AppError(error.message, 400));
-}
+        res.status(200).json({
+            success: true,
+            message: "User logged in successfully!",
+            user,
+        });
+            } catch (error) {
+            return next(new AppError(error.message, 400));
+        }
 };
 
 
@@ -157,7 +166,7 @@ const forgotPassword = async (req, res, next) => {
 
         const resetToken = await user.generatePasswordResetToken();
         await user.save();
-        const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        const resetPasswordURL = `${process.env.FE_URL}/reset-password/${resetToken}`;
         console.log(resetPasswordURL);
         const subject = 'Reset Password';
         const message = `You can reset your password by clicking <a href="${resetPasswordURL}">here</a>.`;
