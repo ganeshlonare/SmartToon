@@ -1,6 +1,6 @@
-import User from "../models/userModelSchemas";
-import AppError from "../utils/error.utils";
-import sendEmail from "../utils/sendEmail";
+import User from "../models/userModelSchemas.js";
+import AppError from "../utils/error.utils.js";
+import sendEmail from "../utils/sendEmail.js";
 import { validate } from "email-validator";
 import cloudinary from "cloudinary";
 import fs from 'fs/promises';
@@ -84,7 +84,7 @@ const register=async(req,res,next)=>{
 
 
 //login function
-const login=async(req,res,next){
+const login=async(req,res,next)=>{
     const {email,password}=req.body;
     console.log(email,password);
     try{
@@ -113,7 +113,7 @@ const login=async(req,res,next){
 
 
 //logout function
-const logout=async(req,res,next){
+const logout=async(req,res,next)=>{
     res.cookie('token', null, {
         secure: true,
         maxAge: 0,
