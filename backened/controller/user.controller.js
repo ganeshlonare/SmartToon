@@ -5,7 +5,7 @@ import { validate } from "email-validator";
 import cloudinary from "cloudinary";
 import fs from 'fs/promises';
 import crypto from "crypto";
-
+import bcryptjs from "bcryptjs";
 
 const cookieOptions={
     httpOnly:true,
@@ -16,10 +16,10 @@ const cookieOptions={
 //signup/register function
 
 const register=async(req,res,next)=>{
-    const{username,email,password,age}=req.body;
-    console.log(username,email,password,age);
+    const{username,email,password,age ,studyYear}=req.body;
+    console.log(username,email,password,age , studyYear);
     try{
-      if(!username || !password ||!email || !age){
+      if(!username || !password ||!email || !age || !studyYear){
         return next(new AppError("All fields are required",400));
       }
       if(!validate(email)){
@@ -35,11 +35,12 @@ const register=async(req,res,next)=>{
         email,
         password,
         age,
+        studyYear,
         avatar:{
             public_id: email,
             secure_url:'https://i.pinimg.com/236x/da/6b/a9/da6ba988037661d18a5a2a28d8a4e5cc.jpg'
         }
-      });
+    });
 
       if(!user){
         return next(new AppError("Registration failed, please try again", 400));
@@ -217,33 +218,45 @@ const resetPassword = async (req, res, next) => {
     });
 }
 
-// Change password function
-const changePassword = async (req, res, next) => {
-    const { oldPassword, newPassword } = req.body;
-    const { id } = req.user;
+const changePassword=async (req,res,next)=>{
+    const {oldPassword , newPassword}=req.body
+    const {id}=req.user
+    console.log("password and new password",oldPassword , newPassword)
+    console.log(req.user)
+    try {
+        if(!oldPassword || !newPassword){
+            return next(errorhandler(401,"All the fields are required"))
+        }
 
-    if (!oldPassword || !newPassword) {
-        return next(new AppError('Please provide old and new passwords', 400));
+        const user=await User.findById(id).select('+password')
+
+        if(!user){
+            return next(errorhandler(404,"User not found"))
+        }
+
+        const isPasswordCorrect=await bcryptjs.compare(oldPassword,user.password)
+
+        if(!isPasswordCorrect){
+            return next(errorhandler(401,"Incorrect password"))
+        }
+
+        const hashedPassword=await bcryptjs.hash(newPassword,10)
+
+        user.password=hashedPassword
+        user.save()
+
+        return res.status(201).json({
+            success:true,
+            message:"Password is changed successfully"
+        })
+    } catch (error) {
+        console.log("failed to change password")
+        console.log(error.message)
+        return res.status(500).json({
+            success:false,
+            message:error.message ||"failed to change password"
+        })
     }
-
-    const user = await User.findById(id);
-    if (!user) {
-        return next(new AppError('User does not exist', 400));
-    }
-
-    const isPasswordValid = await user.comparePassword(oldPassword);
-    if (!isPasswordValid) {
-        return next(new AppError("Old password is incorrect", 400));
-    }
-
-    user.password = newPassword;
-    await user.save();
-    user.password = undefined;
-
-    res.status(200).json({
-        success: true,
-        message: 'Password changed successfully!'
-    });
 }
 
 // Update function
@@ -292,6 +305,7 @@ const update = async (req, res, next) => {
         return next(new AppError(error.message || 'Something went wrong', 400));
     }
 }
+
 export { 
     register,
     login,

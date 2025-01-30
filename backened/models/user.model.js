@@ -31,14 +31,37 @@ const userSchema=new Schema({
     age:{
         type:Number,
         required:[true,"Please enter the age of your kid"],
-            min:0,
-            max:11,
+        min:0,
+        max:11,
     },
-    // StudyYear:{
-    //     type:String,
-    //     required:true,
-    //     enum:["KG1","KG2","1ST","2ND","3RD","4TH","5TH"],
-    // },
+    role:{
+        type:String,
+        enum:['USER','ADMIN'],
+        default:'USER'
+    },
+    studyYear:{
+        type:String,
+        required:[true,"Please enter study year of the student"],
+        enum:["KG1","KG2","1ST","2ND","3RD","4TH","5TH"],
+    },
+    progress: [
+        {
+          bookId: { 
+            type: Schema.Types.ObjectId,
+            ref:"Book"
+        },
+          chapter: { 
+            type: String 
+        }, // Chapter name or number
+          page: { 
+            type: Number 
+        }, // Current page number
+          completed: { 
+            type: Boolean, 
+            default: false 
+        },
+    },
+      ],
     avatar:{
         public_id:{
             type:String
@@ -79,9 +102,9 @@ userSchema.methods.generateJWTToken = function() {
 };
 
 //compare password
-userSchema.methods.comparePassword = async function (plainTextPassword) {
-    return await bcrypt.compare(plainTextPassword, this.password);
-};
+// userSchema.methods.comparePassword = async function (plainTextPassword) {
+//     return await bcrypt.compare(plainTextPassword, this.password);
+// };
 
 //generate dynamic token (for reset password)
 userSchema.methods.generatePasswordResetToken=async function (){
