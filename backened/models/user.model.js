@@ -101,10 +101,10 @@ userSchema.methods.generateJWTToken = function() {
     );
 };
 
-//compare password
-// userSchema.methods.comparePassword = async function (plainTextPassword) {
-//     return await bcrypt.compare(plainTextPassword, this.password);
-// };
+// compare password
+userSchema.methods.comparePassword = async function (plainTextPassword) {
+    return await bcrypt.compare(plainTextPassword, this.password);
+};
 
 //generate dynamic token (for reset password)
 userSchema.methods.generatePasswordResetToken=async function (){

@@ -22,7 +22,16 @@ const bookSchema = new Schema({
         required: [true, "Please specify the study year this book is for"],
         enum: ["KG1", "KG2", "1ST", "2ND", "3RD", "4TH", "5TH"]
     },
+    pdfUrl:{
+        public_id: { type: String },
+        secure_url: { type: String }
+    },
     totalChapters: {
+        type: Number,
+        required: true,
+        min: 1
+    },
+    totalPages: {
         type: Number,
         required: true,
         min: 1
