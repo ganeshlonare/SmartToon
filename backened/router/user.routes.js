@@ -1,11 +1,21 @@
 import { Router } from "express";
-import { register, login, logout, getProfile, forgotPassword, resetPassword, changePassword, update } from "../controller/user.controller.js";
+
+import {
+  changePassword,
+  forgotPassword,
+  getProfile,
+  login,
+  logout,
+  register,
+  resetPassword,
+  update,
+} from "../controller/user.controller.js";
 import { isLoggedIn } from "../middlewares/auth.middlewares.js";
 import upload from "../middlewares/multer.middleware.js";
 
 const userRoutes = Router();
 
-userRoutes.post("/register",upload.single("avatar") , register);
+userRoutes.post("/register", upload.single("avatar"), register);
 userRoutes.post("/login", login);
 userRoutes.get("/logout", logout);
 userRoutes.get("/me", isLoggedIn, getProfile);
